@@ -1,12 +1,10 @@
 import { getDataSourceName, InjectRepository } from "@nestjs/typeorm";
-import { Entity, Column, PrimaryGeneratedColumn, Repository, DataSource} from "typeorm";
+import { Entity, Column, PrimaryGeneratedColumn, Repository, MoreThanOrEqual, ManyToOne, JoinColumn} from "typeorm";
 import { Event } from "./event.entity";
 
 
 @Entity('bookings')
 export class Booking {
-
-    constructor(@InjectRepository(Event) private eventRepository:Repository<Event>){}
 
     @PrimaryGeneratedColumn()
     booking_id: number;
@@ -35,9 +33,8 @@ export class Booking {
     @Column()
     customer_last_name: string;
 
-
-    // async getBookingStatus(){
-    //       const occupied = await this.eventRepository.createQueryBuilder('events').jo 
-    // }
+    @ManyToOne(()=>Event, (event)=>event.bookings)
+    @JoinColumn({name:'event_id', referencedColumnName:'event_id'})
+    event:Event;
 
 }

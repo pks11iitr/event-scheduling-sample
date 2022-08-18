@@ -1,7 +1,9 @@
-import { Entity, Column, PrimaryGeneratedColumn, Table, OneToMany, JoinColumn, ManyToMany, JoinTable } from "typeorm";
+import { Entity, Column, PrimaryGeneratedColumn, OneToMany, ManyToMany, JoinTable } from "typeorm";
 import { EventBreak } from "./event-breaks.entity";
 import { Holiday } from "./holidays.entity";
 import * as date from 'date-and-time';
+import { Booking } from "./booking.entity";
+import { BookingCount } from "./booking-count.entity";
 
 @Entity('events')
 export class Event {
@@ -37,6 +39,11 @@ export class Event {
     @OneToMany(()=>EventBreak, (breaks)=> breaks.event, {eager:true})
     breaks:EventBreak[];
 
+    @OneToMany(()=>Booking, (booking)=> booking.event)
+    bookings:Booking[];
+
+    @OneToMany(() => BookingCount, (booking_count)=>booking_count.event)
+    booking_count:BookingCount[];
 
     @ManyToMany(()=>Holiday, {eager:true})
     @JoinTable({

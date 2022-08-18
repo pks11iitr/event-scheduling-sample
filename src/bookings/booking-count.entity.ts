@@ -1,5 +1,5 @@
-import { Entity, Column, PrimaryGeneratedColumn} from "typeorm";
-
+import { Entity, Column, PrimaryGeneratedColumn, ManyToOne, JoinColumn} from "typeorm";
+import { Event } from "./event.entity";
 
 @Entity('booking_count')
 export class BookingCount {
@@ -15,5 +15,13 @@ export class BookingCount {
 
     @Column()
     count: number;
+
+    @ManyToOne(()=>Event, (event)=>'event.booking_count')
+    @JoinColumn({name:'event_id'})
+    event:Event
+
+
+
+
 
 }

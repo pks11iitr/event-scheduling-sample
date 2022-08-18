@@ -1,8 +1,8 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Repository, MoreThanOrEqual } from 'typeorm';
 import { Event } from './event.entity';
-import {Booking } from './booking.entity';
+import { Booking } from './booking.entity';
 import { EventBreak } from './event-breaks.entity';
 import {BookEventDto } from './dto/book-event.dto';
 import { BookingCount } from './booking-count.entity';
@@ -13,14 +13,18 @@ export class BookingsService {
 
     constructor(@InjectRepository(Event) private eventRepository: Repository<Event>,
     @InjectRepository(Booking) private bookingRepository:Repository<Booking>,
-    @InjectRepository(EventBreak) private eventBreakRepository:Repository<EventBreak>, 
     @InjectRepository(BookingCount) private bookingCountRepository:Repository<BookingCount>){
 
     }
 
     async view(){
-       const events = await this.eventRepository 
-       return this.eventRepository.find();
+       const occupied  = await this.getBookingStatus()
+       const events = await this.eventRepository.find()
+       
+       return {
+        occupied:occupied,
+        events:events
+       }
        
        //const occupied = await
     }
@@ -66,9 +70,10 @@ export class BookingsService {
 
 
     async create_booking(event:Event, data:BookEventDto):Promise<Booking|String>{
-        const booking_start = data.booking_time;
-        let start_date_time = date.format(new Date(), 'YYYY-MM-DD').toString()+' '+ booking_start;
+        const start_date_time = data.booking_date+' '+ data.booking_time;
         let booking_end = date.format(date.addMinutes(new Date(start_date_time), event.session_duration), 'HH:mm:ss');
+
+        console.log(start_date_time)
 
         let booking_count = await this.bookingCountRepository.findOneBy({
             event_id:data.event_id,
@@ -90,7 +95,7 @@ export class BookingsService {
         const booking = await this.bookingRepository.save({
             'event_id' : data.event_id,
             'booking_date' : data.booking_date,
-            'booking_start_time' : booking_start,
+            'booking_start_time' : data.booking_time,
             'booking_end_time' : booking_end,
             'customer_email' : data.email,
             'customer_first_name' : data.first_name,
@@ -99,6 +104,32 @@ export class BookingsService {
         });
         return booking;   
     }
+
+
+    async getBookingStatus():Promise<Event[]>{
+        const today_date = date.format(new Date(), 'YYYY-MM-DD').toString()+' '+'00:00:00';
+        
+        const occupied = await this.eventRepository.find({
+          relations:{
+              booking_count:true
+          },
+          where:{
+              booking_count:{
+                  date_time:MoreThanOrEqual(today_date)
+              }
+          },
+          select:{
+              event_id:true,
+              booking_count:{
+                date_time:true,
+                count:true
+              },
+              max_bookings:true
+          }
+        });
+
+        return occupied
+  }
 
 
     

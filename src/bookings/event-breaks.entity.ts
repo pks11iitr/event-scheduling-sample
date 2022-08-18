@@ -16,8 +16,8 @@ export class EventBreak {
     @Column()
     break_end_time: string;
 
-    // @Column()
-    // event_id: number;
+    @Column()
+    event_id: number;
 
     @ManyToOne(()=>Event, (event)=>event.breaks)
     @JoinColumn({name:"event_id"})
